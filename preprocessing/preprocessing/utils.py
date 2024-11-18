@@ -186,17 +186,18 @@ class LocalTextCategorizationDataset(BaseTextCategorizationDataset):
         """
 
         # reading dataset from filename path, dataset is csv
-        # TODO: CODE HERE
+        df = pd.read_csv(filename)
 
         # assert that columns are the ones expected
-        # TODO: CODE HERE
+        assert df.columns.tolist() == [
+            'post_id', 'tag_name', 'tag_id', 'tag_position', 'title']
 
         def filter_tag_position(position):
             def filter_function(df):
                 """
                 keep only tag_position = position
                 """
-                # TODO: CODE HERE
+                return df[df['tag_position'] == position]
 
             return filter_function
 
@@ -205,14 +206,18 @@ class LocalTextCategorizationDataset(BaseTextCategorizationDataset):
                 """
                 removes tags that are seen less than x times
                 """
-                # TODO: CODE HERE
+                tags_counts = df['tag_name'].value_counts()
+                tags_to_keep = tags_counts[tags_counts >= x].index
+                return df[df['tag_name'].isin(tags_to_keep)]
 
             return filter_function
 
         # use pandas.DataFrame.pipe to chain preprocessing steps
         # https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.pipe.html
         # return pre-processed dataset
-        # TODO: CODE HERE
+        return df\
+            .pipe(filter_tag_position(0))\
+            .pipe(filter_tags_with_less_than_x_samples(min_samples_per_label))
 
     # we need to implement the methods that are not implemented in the super class BaseTextCategorizationDataset
 
@@ -220,21 +225,22 @@ class LocalTextCategorizationDataset(BaseTextCategorizationDataset):
         """
         returns label list
         """
-        # TODO: CODE HERE
+        return self._label_list
 
     def _get_num_samples(self):
         """
         returns number of samples in dataset
         """
-        # TODO: CODE HERE
+        return len(self._dataset)
 
     def get_train_batch(self):
         i = self.train_batch_index
-        # TODO: CODE HERE
-        # takes x_train between i * batch_size to (i + 1) * batch_size, and apply preprocess_text
-        next_x =  # TODO: CODE HERE
-        # takes y_train between i * batch_size to (i + 1) * batch_size
-        next_y =  # When we reach the max num batches, we start anew
+
+        next_x = self.preprocess_text(
+            self.x_train[i * self.batch_size:(i + 1) * self.batch_size])
+
+        next_y = self.y_train[i * self.batch_size:(i + 1) * self.batch_size]
+
         self.train_batch_index = (
             self.train_batch_index + 1) % self._get_num_train_batches()
         return next_x, next_y
@@ -243,4 +249,4 @@ class LocalTextCategorizationDataset(BaseTextCategorizationDataset):
         """
         it does the same as get_train_batch for the test set
         """
-        # TODO: CODE HERE
+        return self.get_train_batch()
