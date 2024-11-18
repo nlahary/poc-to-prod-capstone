@@ -53,7 +53,7 @@ class BaseTextCategorizationDataset:
         """
         returns the number of labels
         """
-        # TODO: CODE HERE
+        return len(self._get_label_list())
 
     def _get_num_samples(self):
         """
@@ -67,26 +67,26 @@ class BaseTextCategorizationDataset:
         returns number of train samples
         (training set size)
         """
-        # TODO: CODE HERE
+        return integer_floor(self._get_num_samples() * self.train_ratio)
 
     def _get_num_test_samples(self):
         """
         returns number of test samples
         (test set size)
         """
-        # TODO: CODE HERE
+        return self._get_num_samples() - self._get_num_train_samples()
 
     def _get_num_train_batches(self):
         """
         returns number of train batches
         """
-        # TODO: CODE HERE
+        return integer_floor(self._get_num_train_samples() / self.batch_size)
 
     def _get_num_test_batches(self):
         """
         returns number of test batches
         """
-        # TODO: CODE HERE
+        return integer_floor(self._get_num_test_samples() / self.batch_size)
 
     def get_train_batch(self):
         """
@@ -102,25 +102,25 @@ class BaseTextCategorizationDataset:
         """
         raise NotImplementedError
 
-    def get_index_to_label_map(self):
+    def get_index_to_label_map(self) -> dict:
         """
         from label list, returns a map index -> label
         (dictionary index: label)
         """
-        # TODO: CODE HERE
+        return {index: label for index, label in enumerate(self._get_label_list)}
 
     def get_label_to_index_map(self):
         """
         from index -> label map, returns label -> index map
         (reverse the previous dictionary)
         """
-        # TODO: CODE HERE
+        return {label: index for index, label in self.get_index_to_label_map().items()}
 
     def to_indexes(self, labels):
         """
         from a list of labels, returns a list of indexes
         """
-        # TODO: CODE HERE
+        return [self.get_label_to_index_map()[label] for label in labels]
 
     def get_train_sequence(self):
         """
@@ -132,13 +132,13 @@ class BaseTextCategorizationDataset:
         """
         returns a test sequence of type _SimpleSequence
         """
-        # TODO: CODE HERE
+        return _SimpleSequence(self.get_test_batch, self._get_num_test_batches)
 
     def __repr__(self):
         return self.__class__.__name__ + \
-               f"(n_train_samples: {self._get_num_train_samples()}, " \
-               f"n_test_samples: {self._get_num_test_samples()}, " \
-               f"n_labels: {self.get_num_labels()})"
+            f"(n_train_samples: {self._get_num_train_samples()}, " \
+            f"n_test_samples: {self._get_num_test_samples()}, " \
+            f"n_labels: {self.get_num_labels()})"
 
 
 class LocalTextCategorizationDataset(BaseTextCategorizationDataset):
@@ -166,9 +166,7 @@ class LocalTextCategorizationDataset(BaseTextCategorizationDataset):
 
         # TODO: CODE HERE
         # from self._dataset, compute the label list
-        self._label_list =
-
-        y = self.to_indexes(self._dataset['tag_name'])
+        self._label_list = y = self.to_indexes(self._dataset['tag_name'])
         y = to_categorical(y, num_classes=len(self._label_list))
 
         self.x_train, self.x_test, self.y_train, self.y_test = train_test_split(
@@ -180,7 +178,7 @@ class LocalTextCategorizationDataset(BaseTextCategorizationDataset):
         self.train_batch_index = 0
         self.test_batch_index = 0
 
-    @staticmethod
+    @ staticmethod
     def load_dataset(filename, min_samples_per_label):
         """
         loads dataset from filename apply pre-processing steps (keeps only tag_position = 0 & removes tags that were
@@ -234,12 +232,11 @@ class LocalTextCategorizationDataset(BaseTextCategorizationDataset):
         i = self.train_batch_index
         # TODO: CODE HERE
         # takes x_train between i * batch_size to (i + 1) * batch_size, and apply preprocess_text
-        next_x =
-        # TODO: CODE HERE
+        next_x =  # TODO: CODE HERE
         # takes y_train between i * batch_size to (i + 1) * batch_size
-        next_y =
-        # When we reach the max num batches, we start anew
-        self.train_batch_index = (self.train_batch_index + 1) % self._get_num_train_batches()
+        next_y =  # When we reach the max num batches, we start anew
+        self.train_batch_index = (
+            self.train_batch_index + 1) % self._get_num_train_batches()
         return next_x, next_y
 
     def get_test_batch(self):
