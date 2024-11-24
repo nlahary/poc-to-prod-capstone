@@ -33,14 +33,10 @@ def load_dataset_mock(filename, min_samples_per_label):
 
 
 class TestTrain(unittest.TestCase):
-    # TODO: CODE HERE
-    # use the function defined above as a mock for utils.LocalTextCategorizationDataset.load_dataset
     utils.LocalTextCategorizationDataset.load_dataset = MagicMock(
         side_effect=load_dataset_mock)
 
     def test_train(self):
-        # TODO: CODE HERE
-        # create a dictionary params for train conf
         params = {
             "batch_size": 2,
             "epochs": 1,
@@ -49,21 +45,19 @@ class TestTrain(unittest.TestCase):
             "verbose": 1
         }
 
-        # we create a temporary file to store artefacts
         with tempfile.TemporaryDirectory() as model_dir:
-            # run a training
-            accuracy, artefacts_path = run.train(
+            accuracy, _ = run.train(
                 "dummy.csv",
                 params,
                 model_dir,
                 add_timestamp=False
             )
-        print(os.listdir(artefacts_path))
-        # TODO: CODE HERE
-        # assert that accuracy is equal to 1.0
-        self.assertEqual(accuracy, 1.0)
-        # assert artefacts are created
-        self.assertTrue(os.path.exists(
-            os.path.join(artefacts_path, "model.h5")))
-        self.assertTrue(os.path.exists(
-            os.path.join(artefacts_path, "params.json")))
+            self.assertEqual(accuracy, 1.0)
+            self.assertTrue(os.path.exists(
+                os.path.join(model_dir, "model.h5")))
+            self.assertTrue(os.path.exists(
+                os.path.join(model_dir, "params.json")))
+            self.assertTrue(os.path.exists(
+                os.path.join(model_dir, "train_output.json")))
+            self.assertTrue(os.path.exists(
+                os.path.join(model_dir, "labels_index.json")))
