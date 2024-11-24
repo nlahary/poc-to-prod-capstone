@@ -107,14 +107,15 @@ class BaseTextCategorizationDataset:
         from label list, returns a map index -> label
         (dictionary index: label)
         """
-        return {index: label for index, label in enumerate(self._get_label_list)}
+        return {index: label for index, label in enumerate(self._get_label_list())}
 
     def get_label_to_index_map(self):
         """
         from index -> label map, returns label -> index map
         (reverse the previous dictionary)
         """
-        return {label: index for index, label in self.get_index_to_label_map().items()}
+        index_to_label_map = self.get_index_to_label_map()
+        return {label: index for index, label in index_to_label_map.items()}
 
     def to_indexes(self, labels):
         """
@@ -146,7 +147,7 @@ class LocalTextCategorizationDataset(BaseTextCategorizationDataset):
     A TextCategorizationDataset read from a file residing in the local filesystem
     """
 
-    def __init__(self, filename, batch_size,
+    def __init__(self, filename, batch_size, random_state=None,
                  train_ratio=0.8, min_samples_per_label=100, preprocess_text=lambda x: x):
         """
         :param filename: a CSV file containing the text samples in the format
@@ -158,27 +159,33 @@ class LocalTextCategorizationDataset(BaseTextCategorizationDataset):
         super().__init__(batch_size, train_ratio)
         self.filename = filename
         self.preprocess_text = preprocess_text
+        self.random_state = random_state
 
         self._dataset = self.load_dataset(filename, min_samples_per_label)
 
-        assert self._get_num_train_batches() > 0
-        assert self._get_num_test_batches() > 0
+        print(f'num_train_samples: {self._get_num_train_samples()}')
+        print(f'num_test_samples: {self._get_num_test_samples()}')
+        assert self._get_num_train_batches(
+        ) > 0, f'num_train_batches: {self._get_num_train_batches()}'
+        assert self._get_num_test_batches(
+        ) > 0, f'num_test_batches: {self._get_num_test_batches()}'
 
-        # TODO: CODE HERE
-        # from self._dataset, compute the label list
-        self._label_list = y = self.to_indexes(self._dataset['tag_name'])
+        # print(f'dataset:\n {self._dataset}\n')
+        self._label_list = self._dataset['tag_name'].unique()
+        y = self.to_indexes(self._dataset['tag_name'])
         y = to_categorical(y, num_classes=len(self._label_list))
-
         self.x_train, self.x_test, self.y_train, self.y_test = train_test_split(
             self._dataset['title'],
             y,
             train_size=self._get_num_train_samples(),
-            stratify=y)
+            stratify=y,
+            random_state=self.random_state
+        )
 
         self.train_batch_index = 0
         self.test_batch_index = 0
 
-    @ staticmethod
+    @staticmethod
     def load_dataset(filename, min_samples_per_label):
         """
         loads dataset from filename apply pre-processing steps (keeps only tag_position = 0 & removes tags that were
@@ -187,7 +194,6 @@ class LocalTextCategorizationDataset(BaseTextCategorizationDataset):
 
         # reading dataset from filename path, dataset is csv
         df = pd.read_csv(filename)
-
         # assert that columns are the ones expected
         assert df.columns.tolist() == [
             'post_id', 'tag_name', 'tag_id', 'tag_position', 'title']
@@ -233,14 +239,12 @@ class LocalTextCategorizationDataset(BaseTextCategorizationDataset):
         """
         return len(self._dataset)
 
-    def get_train_batch(self):
+    def get_train_batch(self) -> tuple[np.ndarray, np.ndarray]:
         i = self.train_batch_index
 
         next_x = self.preprocess_text(
             self.x_train[i * self.batch_size:(i + 1) * self.batch_size])
-
         next_y = self.y_train[i * self.batch_size:(i + 1) * self.batch_size]
-
         self.train_batch_index = (
             self.train_batch_index + 1) % self._get_num_train_batches()
         return next_x, next_y
