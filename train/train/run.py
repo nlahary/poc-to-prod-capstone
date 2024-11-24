@@ -31,49 +31,86 @@ def train(dataset_path, train_conf, model_path, add_timestamp):
 
     # if add_timestamp then add sub folder with name equal to execution timestamp '%Y-%m-%d-%H-%M-%S'
     if add_timestamp:
-        artefacts_path = os.path.join(model_path, time.strftime('%Y-%m-%d-%H-%M-%S'))
+        artefacts_path = os.path.join(
+            model_path, time.strftime('%Y-%m-%d-%H-%M-%S'))
     else:
         artefacts_path = model_path
 
     # TODO: CODE HERE
     # instantiate a LocalTextCategorizationDataset, use embed method from preprocessing module for preprocess_text param
     # use train_conf for other needed params
-    dataset =
-
-    logger.info(dataset)
+    dataset = LocalTextCategorizationDataset(
+        filename=dataset_path,
+        batch_size=train_conf['batch_size'],
+        train_ratio=0.8,
+        min_samples_per_label=train_conf['min_samples_per_label'],
+        preprocess_text=embed,
+        random_state=42
+    )
 
     # TODO: CODE HERE
     # instantiate a sequential keras model
     # add a dense layer with relu activation
     # add an output layer (multiclass classification problem)
-    model =
+    model = Sequential([
+        # Dense hidden layer
+        Dense(
+            units=train_conf['dense_dim'],
+            activation='relu',
+            input_shape=(768,)  # BERT embedding dimension
+        ),
+        Dense(
+            units=dataset.get_num_labels(),
+            activation='softmax'
+        )
+    ])
 
     # TODO: CODE HERE
     # model fit using data sequences
-    train_history =
+    model.compile(
+        optimizer='adam',
+        loss='categorical_crossentropy',
+        metrics=['accuracy']
+    )
+
+    # Get train and test sequences
+    train_sequence = dataset.get_train_sequence()
+    test_sequence = dataset.get_test_sequence()
+
+    # Train the model
+    train_history = model.fit(
+        train_sequence,
+        epochs=train_conf['epochs'],
+        verbose=train_conf['verbose'],
+        validation_data=test_sequence
+    )
 
     # scores
-    scores = model.evaluate_generator(dataset.get_test_sequence(), verbose=0)
-
+    scores = model.evaluate(test_sequence, verbose=0)
     logger.info("Test Accuracy: {:.2f}".format(scores[1] * 100))
 
-    # TODO: CODE HERE
     # create folder artefacts_path
-
-    # TODO: CODE HERE
+    os.makedirs(artefacts_path, exist_ok=True)
     # save model in artefacts folder, name model.h5
-
-    # TODO: CODE HERE
+    model.save(os.path.join(artefacts_path, "model.h5"))
     # save train_conf used in artefacts_path/params.json
-
-    # TODO: CODE HERE
+    with open(os.path.join(artefacts_path, "params.json"), "w") as f:
+        json.dump(train_conf, f)
     # save labels index in artefacts_path/labels_index.json
+    labels_index = dataset.get_label_to_index_map()
+    with open(os.path.join(artefacts_path, "labels_index.json"), "w") as f:
+        json.dump(labels_index, f)
 
     # train_history.history is not JSON-serializable because it contains numpy arrays
-    serializable_hist = {k: [float(e) for e in v] for k, v in train_history.history.items()}
+    serializable_hist = {k: [float(e) for e in v]
+                         for k, v in train_history.history.items()}
     with open(os.path.join(artefacts_path, "train_output.json"), "w") as f:
         json.dump(serializable_hist, f)
 
+    # print the content of artefacts_path
+    for root, dirs, files in os.walk(artefacts_path):
+        print(f"Files in {root}: {files}")
+    print(os.listdir(artefacts_path))
     return scores[1], artefacts_path
 
 
@@ -83,8 +120,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument("dataset_path", help="Path to training dataset")
-    parser.add_argument("config_path", help="Path to Yaml file specifying training parameters")
-    parser.add_argument("artefacts_path", help="Folder where training artefacts will be persisted")
+    parser.add_argument(
+        "config_path", help="Path to Yaml file specifying training parameters")
+    parser.add_argument(
+        "artefacts_path", help="Folder where training artefacts will be persisted")
     parser.add_argument("add_timestamp", action='store_true',
                         help="Create artefacts in a sub folder with name equal to execution timestamp")
 
@@ -95,4 +134,5 @@ if __name__ == "__main__":
 
     logger.info(f"Training model with parameters: {train_params}")
 
-    train(args.dataset_path, train_params, args.artefacts_path, args.add_timestamp)
+    train(args.dataset_path, train_params,
+          args.artefacts_path, args.add_timestamp)
