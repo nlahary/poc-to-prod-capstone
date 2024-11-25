@@ -104,7 +104,7 @@ if __name__ == "__main__":
         "config_path", help="Path to Yaml file specifying training parameters")
     parser.add_argument(
         "artefacts_path", help="Folder where training artefacts will be persisted")
-    parser.add_argument("add_timestamp", action='store_true',
+    parser.add_argument("--add_timestamp", action='store_true',
                         help="Create artefacts in a sub folder with name equal to execution timestamp")
 
     args = parser.parse_args()
