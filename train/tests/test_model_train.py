@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 import tempfile
 
 import pandas as pd
@@ -33,10 +33,9 @@ def load_dataset_mock(filename, min_samples_per_label):
 
 
 class TestTrain(unittest.TestCase):
-    utils.LocalTextCategorizationDataset.load_dataset = MagicMock(
-        side_effect=load_dataset_mock)
 
-    def test_train(self):
+    @patch("preprocessing.preprocessing.utils.LocalTextCategorizationDataset.load_dataset", side_effect=load_dataset_mock)
+    def test_train(self, load_dataset_mock):
         params = {
             "batch_size": 2,
             "epochs": 1,
