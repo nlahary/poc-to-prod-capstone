@@ -1,0 +1,10 @@
+fastapi
+numpy
+pandas
+pydantic
+python-dotenv
+PyYAML
+scikit_learn
+tf-keras
+transformers
+uvicorn

@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import numpy as np
 from preprocessing.preprocessing.embeddings import embed
-from utils import load_model, load_labels
+from api.utils import load_model, load_labels
 from dotenv import load_dotenv
 import os
 
@@ -22,6 +22,7 @@ class PredictionRequest(BaseModel):
 class PredictionResponse(BaseModel):
     title: str
     predicted_tag: str
+    top5_and_scores: list[tuple[str, float]]
 
 
 @app.get("/")
@@ -44,13 +45,18 @@ async def predict_tag(request: PredictionRequest):
 
     try:
         predictions = model.predict(title_embedding)
+        # print the top 5 labels predicted, use index_to_label to get the label name
+        top5_indices = np.argsort(predictions[0])[::-1][:5]
+        top5_and_scores = [(index_to_label[index], predictions[0][index])
+                           for index in top5_indices]
+
         predicted_index = np.argmax(predictions[0])
         predicted_label = index_to_label[predicted_index]
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Erreur pendant la prédiction : {str(e)}")
 
-    return PredictionResponse(title=request.title, predicted_tag=predicted_label)
+    return PredictionResponse(title=request.title, predicted_tag=predicted_label, top5_and_scores=top5_and_scores)
 
 if __name__ == "__main__":
     import uvicorn

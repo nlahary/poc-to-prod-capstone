@@ -91,6 +91,9 @@ def train(dataset_path, train_conf, model_path, add_timestamp):
     with open(os.path.join(artefacts_path, "train_output.json"), "w") as f:
         json.dump(serializable_hist, f)
 
+    with open(os.path.join(artefacts_path, "scores.json"), "w") as f:
+        json.dump({"test_accuracy": scores[1]}, f)
+
     return scores[1], artefacts_path
 
 
