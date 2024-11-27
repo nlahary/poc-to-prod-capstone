@@ -77,7 +77,7 @@ def train(dataset_path, train_conf, model_path, add_timestamp):
 
     os.makedirs(artefacts_path, exist_ok=True)
 
-    model.save(os.path.join(artefacts_path, "model.h5"))
+    model.save(os.path.join(artefacts_path, "model.h5"), save_format='h5')
 
     with open(os.path.join(artefacts_path, "params.json"), "w") as f:
         json.dump(train_conf, f)
@@ -92,7 +92,7 @@ def train(dataset_path, train_conf, model_path, add_timestamp):
         json.dump(serializable_hist, f)
 
     with open(os.path.join(artefacts_path, "scores.json"), "w") as f:
-        json.dump({"test_accuracy": scores[1]}, f)
+        json.dump({"test_accuracy": float(scores[1])}, f)
 
     return scores[1], artefacts_path
 
