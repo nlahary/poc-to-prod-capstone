@@ -1,7 +1,7 @@
 FROM apache/airflow:2.10.0-python3.10
 
 COPY requirements.txt /requirements.txt
-
+COPY .dev.env /opt/airflow/.dev.env
 COPY predict /opt/airflow/predict
 COPY preprocessing /opt/airflow/preprocessing
 COPY train /opt/airflow/train
