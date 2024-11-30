@@ -7,11 +7,20 @@ import yaml
 import logging
 from tensorflow.keras.models import load_model
 from train.train.run import train
-logger = logging.getLogger(__name__)
+import dotenv
 
-ARTEFACTS_PATH = '/opt/airflow/data/artefacts'
-DATASET_PATH = '/opt/airflow/train/data/training-data/'
-CONFIG_PATH = '/opt/airflow/train/conf/train-conf.yml'
+ENV_FILE_PATH = os.getenv('AIRFLOW_HOME') + '/.dev.env'
+
+dotenv.load_dotenv(ENV_FILE_PATH)
+
+ARTEFACTS_PATH = os.path.join(
+    os.getenv('AIRFLOW_HOME'), os.getenv('ARTEFACTS_PATH'))
+DATASET_PATH = os.path.join(
+    os.getenv('AIRFLOW_HOME'), os.getenv('DATASET_PATH'))
+CONFIG_PATH = os.path.join(
+    os.getenv('AIRFLOW_HOME'), os.getenv('CONFIG_PATH'))
+
+logger = logging.getLogger(__name__)
 
 default_args = {
     'owner': 'airflow',
@@ -30,28 +39,21 @@ def load_training_config(config_path):
         return yaml.safe_load(f)
 
 
-def create_output_dir(base_path, add_timestamp=False):
-    if add_timestamp:
-        output_dir = os.path.join(
-            base_path, datetime.now().strftime('%Y-%m-%d-%H-%M-%S'))
-    else:
-        output_dir = base_path
-    os.makedirs(output_dir, exist_ok=True)
-    return output_dir
+def check_model_saved(artefacts_path):
+    for file in ['labels_index.json', 'model.h5', 'params.json', 'scores.json', 'train_output.json']:
+        if not os.path.exists(os.path.join(artefacts_path, file)):
+            raise FileNotFoundError(file)
+    logging.info(f'Artefacts successfuly saved in {artefacts_path}')
 
 
 def train_and_save_artefacts(**kwargs):
     train_config = load_training_config(CONFIG_PATH)
     artefacts_path = kwargs['artefacts_path']
     dataset_path = kwargs['dataset_path']
-    train(dataset_path, train_config, artefacts_path, add_timestamp=True)
+    _, artefacts_path = train(
+        dataset_path, train_config, artefacts_path, add_timestamp=True)
+    check_model_saved(artefacts_path)
 
-
-def evaluate_model(artefacts_path, **kwargs):
-    model_path = os.path.join(artefacts_path, "model.h5")
-    model = load_model(model_path)
-    logger.info("Model evaluation completed.")
-    return model.evaluate()
 
 ######## DAG ########
 
@@ -69,14 +71,8 @@ train_and_save_artefacts = PythonOperator(
     task_id='train_and_save_artefacts',
     python_callable=train_and_save_artefacts,
     op_kwargs={'artefacts_path': ARTEFACTS_PATH, 'dataset_path': DATASET_PATH},
+    provide_context=True,
     dag=dag,
 )
 
-evaluate_model = PythonOperator(
-    task_id='evaluate_model',
-    python_callable=evaluate_model,
-    op_kwargs={'artefacts_path': ARTEFACTS_PATH},
-    dag=dag,
-)
-
-start >> train_and_save_artefacts >> evaluate_model
+start >> train_and_save_artefacts
