@@ -16,5 +16,8 @@ RUN mkdir -p /opt/airflow/dags /opt/airflow/logs /opt/airflow/plugins /opt/airfl
 
 USER airflow
 
+# download BERT model
+RUN python -c "from transformers import BertTokenizer, TFBertModel; TFBertModel.from_pretrained('bert-base-uncased'); BertTokenizer.from_pretrained('bert-base-uncased')"
+
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r /requirements.txt
