@@ -9,8 +9,7 @@ ARTEFACT_PATH = Path(__file__).resolve(
 
 class PredictTest(unittest.TestCase):
     def test_from_artefacts(self):
-        model_timestamp = "2024-11-24-20-50-29"
-        # print(f'ARTEFACT_PATH: {ARTEFACT_PATH / model_timestamp}')
+        model_timestamp = "2024-12-01-08-54-59"
         model = run.TextPredictionModel.from_artefacts(
             ARTEFACT_PATH / model_timestamp)
 
@@ -19,7 +18,7 @@ class PredictTest(unittest.TestCase):
         self.assertIsNotNone(model.labels_to_index)
 
     def test_predict_equal_length(self):
-        model_timestamp = "2024-11-24-20-50-29"
+        model_timestamp = "2024-12-01-08-54-59"
         model = run.TextPredictionModel.from_artefacts(
             ARTEFACT_PATH / model_timestamp)
 

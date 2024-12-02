@@ -23,20 +23,20 @@ class TextPredictionModel:
                                  ind in self.labels_to_index.items()}
 
     @classmethod
-    def from_artefacts(cls, artefacts_path: str):
+    def from_artefacts(cls: "TextPredictionModel", artefacts_path: str) -> "TextPredictionModel":
         """
             from training artefacts, returns a TextPredictionModel object
             :param artefacts_path: path to training artefacts
         """
         model = load_model(os.path.join(
-            artefacts_path, "model.h5"), compile=False)
+            artefacts_path, "model.h5"))
         params = json.load(open(os.path.join(artefacts_path, "params.json")))
         labels_to_index = json.load(
             open(os.path.join(artefacts_path, "labels_index.json")))
 
         return cls(model, params, labels_to_index)
 
-    def predict(self, text_list, top_k=5):
+    def predict(self, text_list: list[str], top_k: int = 5) -> list[OrderedDict]:
         """
             predict top_k tags for a list of texts
             :param text_list: list of text (questions from stackoverflow)

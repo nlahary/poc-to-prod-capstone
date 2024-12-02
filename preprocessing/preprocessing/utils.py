@@ -163,14 +163,11 @@ class LocalTextCategorizationDataset(BaseTextCategorizationDataset):
 
         self._dataset = self.load_dataset(filename, min_samples_per_label)
 
-        print(f'num_train_samples: {self._get_num_train_samples()}')
-        print(f'num_test_samples: {self._get_num_test_samples()}')
         assert self._get_num_train_batches(
         ) > 0, f'num_train_batches: {self._get_num_train_batches()}'
         assert self._get_num_test_batches(
         ) > 0, f'num_test_batches: {self._get_num_test_batches()}'
 
-        # print(f'dataset:\n {self._dataset}\n')
         self._label_list = self._dataset['tag_name'].unique()
         y = self.to_indexes(self._dataset['tag_name'])
         y = to_categorical(y, num_classes=len(self._label_list))
@@ -192,9 +189,13 @@ class LocalTextCategorizationDataset(BaseTextCategorizationDataset):
         seen less than `min_samples_per_label` times)
         """
 
-        # reading dataset from filename path, dataset is csv
-        df = pd.read_csv(filename)
-        # assert that columns are the ones expected
+        if '*' in filename:
+            import glob
+            filenames = glob.glob(filename)
+            df = pd.concat([pd.read_csv(f) for f in filenames])
+        else:
+            df = pd.read_csv(filename)
+
         assert df.columns.tolist() == [
             'post_id', 'tag_name', 'tag_id', 'tag_position', 'title']
 
@@ -253,4 +254,11 @@ class LocalTextCategorizationDataset(BaseTextCategorizationDataset):
         """
         it does the same as get_train_batch for the test set
         """
-        return self.get_train_batch()
+        i = self.test_batch_index
+
+        next_x = self.preprocess_text(
+            self.x_test[i * self.batch_size:(i + 1) * self.batch_size])
+        next_y = self.y_test[i * self.batch_size:(i + 1) * self.batch_size]
+        self.test_batch_index = (
+            self.test_batch_index + 1) % self._get_num_test_batches()
+        return next_x, next_y

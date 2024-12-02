@@ -1,3 +1,5 @@
+from preprocessing.preprocessing.utils import LocalTextCategorizationDataset
+from preprocessing.preprocessing.embeddings import embed
 import os
 import json
 import argparse
@@ -6,9 +8,6 @@ import logging
 
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
-
-from preprocessing.preprocessing.embeddings import embed
-from preprocessing.preprocessing.utils import LocalTextCategorizationDataset
 
 logger = logging.getLogger(__name__)
 
@@ -28,13 +27,13 @@ def train(dataset_path, train_conf, model_path, add_timestamp):
     :param model_path: path to folder where training artefacts will be persisted
     :param add_timestamp: boolean to create artefacts in a sub folder with name equal to execution timestamp
     """
-
+    logger.info(f'starting training with conf: {train_conf}')
     if add_timestamp:
         artefacts_path = os.path.join(
             model_path, time.strftime('%Y-%m-%d-%H-%M-%S'))
     else:
         artefacts_path = model_path
-
+    logging.info(f"Training artefacts will be saved in {artefacts_path}")
     dataset = LocalTextCategorizationDataset(
         filename=dataset_path,
         batch_size=train_conf['batch_size'],
@@ -43,7 +42,7 @@ def train(dataset_path, train_conf, model_path, add_timestamp):
         preprocess_text=embed,
         random_state=42
     )
-
+    logging.info(f'Creating model with {dataset.get_num_labels()} labels')
     model = Sequential([
         Dense(
             units=train_conf['dense_dim'],
@@ -55,7 +54,7 @@ def train(dataset_path, train_conf, model_path, add_timestamp):
             activation='softmax'
         )
     ])
-
+    logging.info("Compiling model")
     model.compile(
         optimizer='adam',
         loss='categorical_crossentropy',
@@ -65,6 +64,7 @@ def train(dataset_path, train_conf, model_path, add_timestamp):
     train_sequence = dataset.get_train_sequence()
     test_sequence = dataset.get_test_sequence()
 
+    logging.info("Training model")
     train_history = model.fit(
         train_sequence,
         epochs=train_conf['epochs'],
@@ -77,7 +77,9 @@ def train(dataset_path, train_conf, model_path, add_timestamp):
 
     os.makedirs(artefacts_path, exist_ok=True)
 
-    model.save(os.path.join(artefacts_path, "model.h5"), save_format='h5')
+    logging.info("Saving artefacts")
+    model.save(os.path.join(artefacts_path, "model.h5"))
+    # save(model, os.path.join(artefacts_path, "model"))
 
     with open(os.path.join(artefacts_path, "params.json"), "w") as f:
         json.dump(train_conf, f)
@@ -94,6 +96,8 @@ def train(dataset_path, train_conf, model_path, add_timestamp):
     with open(os.path.join(artefacts_path, "scores.json"), "w") as f:
         json.dump({"test_accuracy": float(scores[1])}, f)
 
+    logger.info(f"Training artefacts saved in {artefacts_path}")
+    logger.info(f"Content of {artefacts_path}: {os.listdir(artefacts_path)}")
     return scores[1], artefacts_path
 
 
