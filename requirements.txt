@@ -1,10 +1,9 @@
-fastapi==0.115.5
-numpy==2.0.2
-pandas==2.2.3
-python-dotenv==1.0.1
-PyYAML==6.0.2
-scikit_learn==1.5.2
-tensorflow==2.18.0
-tf-keras==2.18.0
-transformers==4.46.2
-uvicorn==0.32.1
+tensorflow==2.12.0 # Specific version to keep Keras 2 and avoid imcompatibility with .h5 format
+pydantic-settings
+fastapi
+pandas
+python-dotenv
+PyYAML
+scikit_learn
+transformers
+uvicorn

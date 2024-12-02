@@ -6,12 +6,11 @@ __pycache__/
 # C extensions
 *.so
 
-.env
 artefacts/
 airflow/config/
 airflow/logs/
 airflow/plugins/
-
+/logs
 # Distribution / packaging
 .Python
 build/
