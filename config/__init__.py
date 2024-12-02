@@ -20,10 +20,10 @@ class Settings(BaseSettings):
     )
 
     def model_post_init(self, __context) -> None:
-        """Post-initialization to validate adjust API_HOST wether we are running
+        """Post-initialization to adjust API_HOST wether we are running
         in a container or not. HOSTNAME is an env var only available in a container.
         """
-        if self.HOSTNAME is None:
+        if self.HOSTNAME is not None:
             self.API_HOST = "0.0.0.0"
 
 
