@@ -22,6 +22,4 @@ Once the services are up, you can access the Airflow UI at `http://localhost:808
 
 Volumes are used for a development purpose, you can remove them to better fit your needs.
 
-The `.dev.env` file contains the configuration for the API, Airflow (not mandatory) and the model.
-
-Additionnal, some Airflow variables are set in the same file. The keys have been generated through websites just for the sake of the example.
+The `.dev.env` file contains the configuration for the API, Airflow (I don't think it is mandatory, keys have been generated just for the sake of the example) and the model.
