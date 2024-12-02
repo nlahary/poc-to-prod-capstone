@@ -10,12 +10,15 @@ class Settings(BaseSettings):
     MODEL_CONFIG_PATH: str
     ARTEFACTS_PATH: str
     DATASET_PATH: str
+    # If no path is provided, download the model from Hugging Face
+    BERT_MODEL_PATH: Optional[str] = 'bert-base-uncased'
 
     HOSTNAME: Optional[str] = None
 
     model_config = SettingsConfigDict(
         env_file="./.dev.env",
         env_file_encoding="utf-8",
+        extra='allow'
     )
 
     def model_post_init(self, __context) -> None:
