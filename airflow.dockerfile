@@ -1,13 +1,6 @@
 FROM apache/airflow:2.10.0-python3.10
 
-COPY requirements.txt /requirements.txt
-COPY .dev.env /opt/airflow/.dev.env
-COPY predict /opt/airflow/predict
-COPY preprocessing /opt/airflow/preprocessing
-COPY train /opt/airflow/train
-COPY config /opt/airflow/config
-
-ENV PYTHONPATH="${PYTHONPATH}:/opt/airflow"
+COPY requirements.txt predict preprocessing train config .dev.env ./
 
 USER root
 
@@ -15,9 +8,6 @@ RUN mkdir -p /opt/airflow/dags /opt/airflow/logs /opt/airflow/plugins /opt/airfl
     chown -R airflow: /opt/airflow
 
 USER airflow
-
-# download BERT model
-RUN python -c "from transformers import BertTokenizer, TFBertModel; TFBertModel.from_pretrained('bert-base-uncased'); BertTokenizer.from_pretrained('bert-base-uncased')"
 
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r /requirements.txt
