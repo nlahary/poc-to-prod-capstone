@@ -16,7 +16,6 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file="./.dev.env",
         env_file_encoding="utf-8",
-        extra="allow"   # Allow extra fields for the Airflow settings
     )
 
     def model_post_init(self, __context) -> None:
