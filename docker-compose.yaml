@@ -59,11 +59,9 @@ x-airflow-common:
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
     AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@postgres/airflow
     AIRFLOW__CELERY__BROKER_URL: redis://:@redis:6379/0
-    AIRFLOW__CORE__FERNET_KEY: ''
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
     AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
     AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session'
-    AIRFLOW_UID: "${AIRFLOW_UID:-50000}" 
     # yamllint disable rule:line-length
     # Use simple http server on scheduler for health checks
     # See https://airflow.apache.org/docs/apache-airflow/stable/administration-and-deployment/logging-monitoring/check-health.html#scheduler-health-check-server
@@ -75,15 +73,16 @@ x-airflow-common:
     # The following line can be used to set a custom config file, stored in the local config folder
     # If you want to use it, outcomment it and replace airflow.cfg with the name of your config file
     # AIRFLOW_CONFIG: '/opt/airflow/config/airflow.cfg'
+  env_file:
+    - .dev.env
   volumes:
     # For development only:
     - ./preprocessing:/opt/airflow/preprocessing
     - ./train:/opt/airflow/train
     - ./predict:/opt/airflow/predict
-    - ./.dev.env:/opt/airflow/.dev.env
+    - ./config:/opt/airflow/config
     - ./airflow/dags:/opt/airflow/dags
     - ./airflow/logs:/opt/airflow/logs
-    - ./airflow/config:/opt/airflow/config
     - ./airflow/plugins:/opt/airflow/plugins
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
@@ -291,6 +290,31 @@ services:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
+
+  api:
+    build:
+      context: .
+      dockerfile: api.dockerfile
+    ports:
+      - "3000:3000"
+    command: 
+      - python 
+      - predict/predict/app.py
+    volumes:
+      - ./predict:/app/predict
+      - ./preprocessing:/app/preprocessing
+      - ./train:/app/train
+      - ./config:/app/config
+      - ./.dev.env:/app/.dev.env
+      - ./logs:/app/logs
+    environment:
+      - PYTHONBUFFERED=1
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
 
 volumes:
   postgres-db-volume:
