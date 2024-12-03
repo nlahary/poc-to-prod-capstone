@@ -33,6 +33,11 @@ class Settings(BaseSettings):
             )
             self.BERT_MODEL_PATH = 'bert-base-uncased'
         else:
+            # This part is for development purposes. To prevent downloading the model every time
+            # you build an image, you can :
+            # - Save the model in the BERT_MODEL_PATH directory.
+            # - Set the BERT_MODEL_PATH in the .env file.
+            # - Comment out the last line of the dockerfiles (RUN python -c "from transformers import BertTokenizer,....)
             snapshots_path = os.path.join(self.BERT_MODEL_PATH, "snapshots")
             if os.path.exists(snapshots_path) and os.path.isdir(snapshots_path):
                 snapshots = os.listdir(snapshots_path)
