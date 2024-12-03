@@ -9,7 +9,9 @@ from config import settings
 @lru_cache(maxsize=1)
 def get_embedding_model():
     model = TFBertModel.from_pretrained(
-        settings.BERT_MODEL_PATH, output_hidden_states=True)
+        settings.BERT_MODEL_PATH,
+        output_hidden_states=True,
+    )
     tokenizer = BertTokenizer.from_pretrained(settings.BERT_MODEL_PATH)
 
     return model, tokenizer

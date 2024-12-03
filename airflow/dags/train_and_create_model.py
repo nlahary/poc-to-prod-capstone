@@ -62,8 +62,6 @@ dag = DAG(
 
 )
 
-start = DummyOperator(task_id='start', dag=dag)
-
 train_and_save_artefacts = PythonOperator(
     task_id='train_and_save_artefacts',
     python_callable=train_and_save_artefacts,
@@ -73,4 +71,4 @@ train_and_save_artefacts = PythonOperator(
     dag=dag,
 )
 
-start >> train_and_save_artefacts
+train_and_save_artefacts

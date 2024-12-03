@@ -79,7 +79,6 @@ def train(dataset_path, train_conf, model_path, add_timestamp):
 
     logging.info("Saving artefacts")
     model.save(os.path.join(artefacts_path, "model.h5"))
-    # save(model, os.path.join(artefacts_path, "model"))
 
     with open(os.path.join(artefacts_path, "params.json"), "w") as f:
         json.dump(train_conf, f)
@@ -97,7 +96,6 @@ def train(dataset_path, train_conf, model_path, add_timestamp):
         json.dump({"test_accuracy": float(scores[1])}, f)
 
     logger.info(f"Training artefacts saved in {artefacts_path}")
-    logger.info(f"Content of {artefacts_path}: {os.listdir(artefacts_path)}")
     return scores[1], artefacts_path
 
 

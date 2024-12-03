@@ -51,7 +51,7 @@ async def root():
     return RedirectResponse(url="/docs")
 
 
-@ app.get('/model')
+@ app.get(f'/{settings.API_VERSION}/model', response_model=ModelSummary)
 async def get_model_info():
     """ Get model summary """
     model = get_model()
