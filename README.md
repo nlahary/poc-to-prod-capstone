@@ -26,10 +26,15 @@ To start all services (Airflow + API):
 docker-compose up
 ```
 
-The building might take a while depending on your internet connection (Tensorflow + BERT model). 
+The building might take a while depending on your internet connection. 
 Once the services are up, you can access the Airflow UI at `http://localhost:8080` and the API at `http://localhost:3000`.
 
 
 Volumes are used in the docker composer for a development purpose, you can remove them to better fit your needs.
 
 The `.dev.env` file contains the configuration for the API and the pathes for the inputs/outputs of the model.
+
+The building and default configuration of the `.dev.env` file assume that you run the projet as it is. If you wish to work on it and might build images while developing, I recommend :
+- Download BERT model locally
+- Add the path to the model in the `.dev.env` file (BERT_MODEL_PATH). The path should stop before the snapshot file, in order to valid the path through the pydantic settings. (see `config/__init__.py`)
+- Remove the the download of the BERT model in the Dockerfile of the API and Airflow.

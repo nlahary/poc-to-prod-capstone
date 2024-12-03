@@ -6,6 +6,7 @@ __pycache__/
 # C extensions
 *.so
 
+preprocessing/bert-base-uncased/
 artefacts/
 airflow/config/
 airflow/logs/
